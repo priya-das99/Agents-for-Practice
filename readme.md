@@ -1,136 +1,145 @@
-💰 Personal Finance Advisor Agent (OpenAI Agents SDK)
-📌 Overview
+# Finance Planner Agent
 
-This project is a multi-agent AI system built using the OpenAI Agents SDK. It acts as a Personal Finance Advisor that helps users:
+`FinancePlannerAgent` is a small multi-agent personal finance demo built with the OpenAI Agents SDK. It takes a free-form finance question, routes the request to specialized agents, and returns a structured finance response.
 
-📊 Create a monthly budget
-📈 Get investment suggestions
-⚠️ Analyze financial risk
+The project currently focuses on three areas:
 
-It demonstrates the Agents-as-Tools pattern, where a central agent delegates tasks to specialized agents.
-🧠 Architecture
+- Monthly budget suggestions
+- Beginner-friendly investment ideas
+- Basic financial risk analysis
 
-User Input
-   ↓
-Orchestrator Agent (Decision Maker)
-   ↓
------------------------------------
-| Budget Agent       (💰 Budget)   |
-| Investment Agent   (📈 Advice)   |
-| Risk Agent         (⚠️ Analysis) |
------------------------------------
-   ↓
-Synthesizer Agent (📊 Structured Output)
-   ↓
-Final Response (Pydantic Object)
+## What It Does
 
-🧩 Components
-🧠 Orchestrator Agent
-Decides which agents (tools) to call
-Understands user intent
-Does NOT generate final answers
+The application uses an orchestrator agent to decide which specialist agents should respond to a user query:
 
-💰 Budget Agent
-Creates budget using 50-30-20 rule
-Outputs:
-Needs
-Wants
-Savings
-Provides financial tips
+- `budget_agent` creates a budget suggestion
+- `investment_agent` suggests investment options
+- `risk_agent` analyzes financial risk
 
-⚠️ Currently uses LLM-based estimation (not deterministic logic yet)
+Their outputs are then passed to a synthesizer agent, which converts the result into a validated Pydantic model.
 
-📈 Investment Agent
-Suggests:
-Emergency fund
-Mutual funds (SIP)
-Fixed deposits
-Stocks (basic)
-Focuses on beginner-friendly advice
+## Architecture
 
-⚠️ Risk Agent
-Determines risk level (Low / Medium / High)
-Identifies potential financial risks
-Suggests safer alternatives
+```text
+User Query
+    |
+    v
+Orchestrator Agent
+    |
+    +--> Budget Tool
+    +--> Investment Tool
+    +--> Risk Tool
+    |
+    v
+Synthesizer Agent
+    |
+    v
+Structured FinanceResponse
+```
 
-📊 Synthesizer Agent
-Combines outputs from all agents
-Enforces structured output using Pydantic schema
-Produces clean final response
+## Project Structure
 
-🧱 Tech Stack
-Python (Async)
-OpenAI Agents SDK
-Pydantic (Structured Output Validation)
+```text
+FinancePlannerAgent/
+|-- agent.py
+|-- main.py
+|-- readme.md
+|-- requirements.txt
+|-- schemas/
+|   `-- finance_models.py
+`-- tools/
+    |-- budget_tool.py
+    |-- investment_tool.py
+    `-- risk_tool.py
+```
 
-📁 Project Structure
-finance-agent/
-│
-├── main.py
-├── agents.py
-│
-├── tools/
-│   ├── budget_tool.py
-│   ├── investment_tool.py
-│   └── risk_tool.py
-│
-├── schemas/
-│   └── finance_models.py
+## Data Model
 
-🔐 Structured Output (Schema)
+The final output is validated against the `FinanceResponse` schema defined in `schemas/finance_models.py`.
 
-The system enforces structured output using Pydantic:
-
-✅ Example Output
+```python
 class FinanceResponse(BaseModel):
     budget: Budget
     investments: Investments
     risk: Risk
+```
 
-    {
-  "budget": {
-    "needs": 30000,
-    "wants": 18000,
-    "savings": 12000,
-    "tips": ["..."]
-  },
-  "investments": {
-    "emergency_fund": "...",
-    "mutual_funds": ["..."],
-    "fixed_deposits": ["..."],
-    "stocks": ["..."],
-    "notes": ["..."]
-  },
-  "risk": {
-    "risk_level": "Medium",
-    "reasons": ["..."],
-    "warnings": ["..."],
-    "safer_options": ["..."]
-  }
-}
+That response contains:
 
-⚙️ How It Works
-User enters a financial query
-Orchestrator analyzes intent
-Calls relevant agents as tools
-Each agent generates domain-specific output
-Synthesizer merges outputs into structured schema
-Final response is returned
+- `budget`: needs, wants, savings, and tips
+- `investments`: emergency fund, mutual funds, fixed deposits, stocks, and notes
+- `risk`: risk level, reasons, warnings, and safer options
 
-⚠️ Current Limitations
-❌ Budget logic is LLM-based (not exact calculation)
-❌ No real-time financial data
-❌ No user memory / personalization
-❌ No external API integration
+## Requirements
 
-▶️ How to Run
- Create Python virtual Environment 
- python -m venv
- Activate the virtual environment
- .\venv\scripts\activate
-Then run following command 
+- Python 3.10+
+- An OpenAI API key
+
+## Setup
+
+1. Create a virtual environment:
+
+```powershell
+python -m venv venv
+```
+
+2. Activate it:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+3. Install dependencies:
+
+```powershell
 pip install -r requirements.txt
-python main.py
+```
 
-💡 Example Input
-I earn ₹50,000 per month. Suggest a budget, investments, and risk analysis.
+4. Set your API key:
+
+```powershell
+$env:OPENAI_API_KEY="your_api_key_here"
+```
+
+If you prefer a `.env` file, make sure your runtime loads it before execution.
+
+## Run The Project
+
+```powershell
+python main.py
+```
+
+You will be prompted for a finance question such as:
+
+```text
+I earn 50000 per month. Suggest a budget, investment options, and a risk analysis.
+```
+
+## How The Flow Works
+
+1. `main.py` collects the user query.
+2. The orchestrator agent decides which tools to call.
+3. Specialist agents produce domain-specific responses.
+4. The synthesizer agent converts those outputs into a `FinanceResponse` object.
+5. The result is printed in the console.
+
+## Current Limitations
+
+- No real-time market or banking data
+- No long-term user memory or personalization
+- Budget advice is prompt-driven, not rule-engine based
+- Investment suggestions are educational, not professional financial advice
+
+## Notes
+
+- The file is currently named `readme.md`. If you want better GitHub rendering conventions, rename it to `README.md`.
+- `python-dotenv` is listed in `requirements.txt`, but the current code does not explicitly call `load_dotenv()`.
+
+## Example Use Case
+
+This project is useful as a starter template for:
+
+- OpenAI Agents SDK experiments
+- Tool-routing demos
+- Structured multi-agent outputs with Pydantic
+- Beginner portfolio or budgeting assistant prototypes
